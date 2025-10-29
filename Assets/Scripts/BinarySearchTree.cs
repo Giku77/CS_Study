@@ -154,12 +154,10 @@ public class BinarySearchTree<TKey, TValue> : IDictionary<TKey, TValue> where TK
         int compareResult = key.CompareTo(node.Key);
         if (compareResult < 0)
         {
-            node.Height--;
             node.Left = Remove(node.Left, key);
         }
         else if (compareResult > 0)
         {
-            node.Height--;
             node.Right = Remove(node.Right, key);
         }
         else

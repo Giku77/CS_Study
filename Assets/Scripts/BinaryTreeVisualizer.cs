@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-public enum SpacingType { Pow, LevelOrder, InOrder, PostOrder, PreOrder }
+public enum SpacingType { Pow, LevelOrder, InOrder, PostOrder, PreOrder, PriorityQueue }
 
 public class BinaryTreeVisualizer : MonoBehaviour
 {
@@ -81,6 +81,11 @@ public class BinaryTreeVisualizer : MonoBehaviour
                 AssignPositionsPostOrder(root, 0, ref currentXIndexPost);
                 CreateNode(root);
                 break;
+            case SpacingType.PriorityQueue:
+                nodePositions.Clear();
+                AssignPositionsPriorityQueue(root);
+                CreateNode(root);
+                break;
         }
     }
 
@@ -115,6 +120,34 @@ public class BinaryTreeVisualizer : MonoBehaviour
         }
 
         return nodeVisualizer;
+    }
+
+    private void AssignPositionsPriorityQueue<TKey, TValue>(TreeNode<TKey, TValue> root)
+    {
+        if (root == null) 
+            return;
+        var pq = new PriorityQueue<(TreeNode<TKey, TValue> node, int depth), int>();
+        pq.Enqueue((root, 0), 0);
+        Dictionary<int, int> levelNodeCounts = new Dictionary<int, int>();
+        Dictionary<int, int> levelCurrentIndices = new Dictionary<int, int>();
+        while (pq.Count > 0)
+        {
+            var (currentNode, depth) = pq.Dequeue();
+            if (!levelNodeCounts.ContainsKey(depth))
+            {
+                levelNodeCounts[depth] = 0;
+                levelCurrentIndices[depth] = 0;
+            }
+            float x = levelCurrentIndices[depth] * horizontalSpacing;
+            float y = -depth * verticalSpacing;
+            nodePositions[currentNode] = new Vector3(x, y, 0f);
+            levelNodeCounts[depth]++;
+            levelCurrentIndices[depth]++;
+            if (currentNode.Left != null)
+                pq.Enqueue((currentNode.Left, depth + 1), depth + 1);
+            if (currentNode.Right != null)
+                pq.Enqueue((currentNode.Right, depth + 1), depth + 1);
+        }
     }
 
     private void AssignPositionsPreOrder<TKey, TValue>(TreeNode<TKey, TValue> node, int depth, ref int currentXIndexRef)
