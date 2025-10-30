@@ -1,22 +1,21 @@
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public class GraphSearch 
+public class TileSearch
 {
-    private Graph graph;
-    public List<GraphNode> path = new List<GraphNode>();
+    private Map map;
 
+    public List<Tile> path = new List<Tile>();
 
-    public void Init(Graph graph)
+    public void Init(Map map)
     {
-        this.graph = graph;
+        this.map = map;
     }
 
-    public bool PathFindingBFS(GraphNode start, GraphNode end)
+    public bool PathFindingBFS(Tile start, Tile end)
     {
-        var visited = new HashSet<GraphNode>();
-        var queue = new Queue<GraphNode>();
+        var visited = new HashSet<Tile>();
+        var queue = new Queue<Tile>();
 
         visited.Add(start);
 
@@ -31,9 +30,9 @@ public class GraphSearch
                 break;
             }
 
-            foreach (var neighbor in current.neighbors)
+            foreach (var neighbor in current.adjacents)
             {
-                if (neighbor == null || !neighbor.CanVisit) continue;
+                if (neighbor == null || !neighbor.CanMove) continue;
                 if (visited.Contains(neighbor)) continue;
 
                 visited.Add(neighbor);
@@ -56,11 +55,11 @@ public class GraphSearch
         return false;
     }
 
-    public void PathFind(GraphNode start, GraphNode end)
+    public void PathFind(Tile start, Tile end)
     {
-        var visited = new HashSet<GraphNode>();
-        var queue = new Queue<GraphNode>();
-        var parentMap = new Dictionary<GraphNode, GraphNode>();
+        var visited = new HashSet<Tile>();
+        var queue = new Queue<Tile>();
+        var parentMap = new Dictionary<Tile, Tile>();
         visited.Add(start);
 
         queue.Enqueue(start);
@@ -73,14 +72,14 @@ public class GraphSearch
                 found = true;
                 break;
             }
-    
-            foreach (var neighbor in current.neighbors)
+
+            foreach (var neighbor in current.adjacents)
             {
-                if (neighbor == null || !neighbor.CanVisit) continue;
+                if (neighbor == null || !neighbor.CanMove) continue;
                 if (visited.Contains(neighbor)) continue;
-    
+
                 visited.Add(neighbor);
-                parentMap[neighbor] = current; 
+                parentMap[neighbor] = current;
                 queue.Enqueue(neighbor);
             }
         }
@@ -97,32 +96,32 @@ public class GraphSearch
         }
     }
 
-    public void DFS_Recursive(GraphNode node)
+    public void DFS_Recursive(Tile node)
     {
         path.Clear();
-        var visited = new HashSet<GraphNode>();
+        var visited = new HashSet<Tile>();
         DFS_Recursive(node, visited);
     }
 
 
-    public void DFS_Recursive(GraphNode node, HashSet<GraphNode> visited)
+    public void DFS_Recursive(Tile node, HashSet<Tile> visited)
     {
-        if (node == null || !node.CanVisit) return;
+        if (node == null || !node.CanMove) return;
         visited.Add(node);
         path.Add(node);
-        foreach (var neighbor in node.neighbors)
+        foreach (var neighbor in node.adjacents)
         {
-            if (neighbor == null || !neighbor.CanVisit) continue;
+            if (neighbor == null || !neighbor.CanMove) continue;
             if (visited.Contains(neighbor)) continue;
             DFS_Recursive(neighbor, visited);
         }
     }
 
-    public void DFS(GraphNode node)
+    public void DFS(Tile node)
     {
         path.Clear();
-        var visited = new HashSet<GraphNode>();
-        var stack = new Stack<GraphNode>();
+        var visited = new HashSet<Tile>();
+        var stack = new Stack<Tile>();
 
         visited.Add(node);
         stack.Push(node);
@@ -133,9 +132,9 @@ public class GraphSearch
             path.Add(current);
             //visited.Add(current);
 
-            foreach (var neighbor in current.neighbors)
+            foreach (var neighbor in current.adjacents)
             {
-                if (neighbor == null || !neighbor.CanVisit) continue;
+                if (neighbor == null || !neighbor.CanMove) continue;
                 if (visited.Contains(neighbor)) continue;
 
                 visited.Add(neighbor);
@@ -144,11 +143,11 @@ public class GraphSearch
         }
     }
 
-    public void BFS(GraphNode node)
+    public void BFS(Tile node)
     {
         path.Clear();
-        var visited = new HashSet<GraphNode>();
-        var queue = new Queue<GraphNode>();
+        var visited = new HashSet<Tile>();
+        var queue = new Queue<Tile>();
 
         visited.Add(node);
         queue.Enqueue(node);
@@ -156,41 +155,31 @@ public class GraphSearch
         {
             var current = queue.Dequeue();
             path.Add(current);
-            foreach (var neighbor in current.neighbors)
+            foreach (var neighbor in current.adjacents)
             {
-                if (neighbor == null || !neighbor.CanVisit) continue;
+                if (neighbor == null || !neighbor.CanMove) continue;
                 if (visited.Contains(neighbor)) continue;
 
-                visited.Add(neighbor);  
+                visited.Add(neighbor);
                 queue.Enqueue(neighbor);
             }
-            //foreach (var neighbor in current.neighbors)
-            //{
-            //    if (!neighbor.CanVisit || visited.Contains(neighbor) || queue.Contains(neighbor))
-            //        continue;
-            //    if (!visited.Contains(neighbor))
-            //    {
-            //        visited.Add(neighbor);
-            //        queue.Enqueue(neighbor);
-            //    }
-            //}
         }
     }
 
-    public bool Dikjstra(GraphNode start, GraphNode goal)
+    public bool Dikjstra(Tile start, Tile goal)
     {
         path.Clear();
-        graph.ResetNodePrevious();
+        ResetTilesPrevious();
 
-        var visited = new HashSet<GraphNode>();
-        var pQueue = new PriorityQueue<GraphNode, int>();
-        var distances = new int[graph.nodes.Length];
+        var visited = new HashSet<Tile>();
+        var pQueue = new PriorityQueue<Tile, int>();
+        var distances = new int[map.tiles.Length];
         for (int i = 0; i < distances.Length; ++i)
         {
             distances[i] = int.MaxValue;
         }
 
-        distances[start.id] = start.weight;
+        distances[start.id] = start.Weight;
         pQueue.Enqueue(start, distances[start.id]);
 
         bool success = false;
@@ -208,12 +197,12 @@ public class GraphSearch
 
             visited.Add(currentNode);
 
-            foreach (var adjacent in currentNode.neighbors)
+            foreach (var adjacent in currentNode.adjacents)
             {
-                if (!adjacent.CanVisit || visited.Contains(adjacent))
+                if (!adjacent.CanMove || visited.Contains(adjacent))
                     continue;
 
-                var newDistance = distances[currentNode.id] + adjacent.weight;
+                var newDistance = distances[currentNode.id] + adjacent.Weight;
                 if (distances[adjacent.id] > newDistance)
                 {
                     distances[adjacent.id] = newDistance;
@@ -228,7 +217,7 @@ public class GraphSearch
             return false;
         }
 
-        GraphNode step = goal;
+        Tile step = goal;
         while (step != null)
         {
             path.Add(step);
@@ -238,33 +227,45 @@ public class GraphSearch
         return true;
     }
 
-    protected int Heuristic(GraphNode a, GraphNode b)
+    private void ResetTilesPrevious()
     {
-        int ax = a.id % graph.cols;
-        int ay = a.id / graph.cols;
-
-        int bx = b.id % graph.cols;
-        int by = b.id / graph.cols;
-
-        return Mathf.Abs(ax - bx) + Mathf.Abs(ay - by);
+        foreach (var tile in map.tiles)
+        {
+            tile.previous = null;
+        }
     }
-    public bool Astar(GraphNode start, GraphNode goal)
+
+    protected int Heuristic(Tile a, Tile b)
+    {
+        //int ax = a.id % map.cols;
+        //int ay = a.id / map.cols;
+
+        //int bx = b.id % map.cols;
+        //int by = b.id / map.cols;
+
+        //return Mathf.Abs(ax - bx) + Mathf.Abs(ay - by);
+        int ax = a.id % map.cols, ay = a.id / map.cols;
+        int bx = b.id % map.cols, by = b.id / map.cols;
+        int dx = Mathf.Abs(ax - bx), dy = Mathf.Abs(ay - by);
+        return Mathf.Max(dx, dy);
+    }
+    public bool Astar(Tile start, Tile goal)
     {
         path.Clear();
-        graph.ResetNodePrevious();
+        ResetTilesPrevious();
 
-        var visited = new HashSet<GraphNode>();
-        var pQueue = new PriorityQueue<GraphNode, int>();
-        var distances = new int[graph.nodes.Length];
-        var scores = new int[graph.nodes.Length];
+        var visited = new HashSet<Tile>();
+        var pQueue = new PriorityQueue<Tile, int>();
+        var distances = new int[map.tiles.Length];
+        var scores = new int[map.tiles.Length];
 
         for (int i = 0; i < distances.Length; ++i)
         {
             scores[i] = distances[i] = int.MaxValue;
         }
 
-        distances[start.id] = start.weight;
-        scores[goal.id] = distances[start.id] + Heuristic(start, goal);
+        distances[start.id] = start.Weight;
+        scores[start.id] = distances[start.id] + Heuristic(start, goal);
         pQueue.Enqueue(start, scores[start.id]);
 
         bool success = false;
@@ -283,14 +284,15 @@ public class GraphSearch
             }
 
             visited.Add(currentNode);
-            foreach (var adjacent in currentNode.neighbors)
+            foreach (var adjacent in currentNode.adjacents)
             {
-                if (!adjacent.CanVisit || visited.Contains(adjacent))
+                if (adjacent == null) continue;
+                if (!adjacent.CanMove || visited.Contains(adjacent))
                 {
                     continue;
                 }
 
-                var newDistance = distances[currentNode.id] + adjacent.weight;
+                var newDistance = distances[currentNode.id] + adjacent.Weight;
                 if (distances[adjacent.id] > newDistance)
                 {
                     distances[adjacent.id] = newDistance;
@@ -307,7 +309,7 @@ public class GraphSearch
             return false;
         }
 
-        GraphNode step = goal;
+        Tile step = goal;
         while (step != null)
         {
             path.Add(step);

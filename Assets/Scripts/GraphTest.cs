@@ -16,17 +16,19 @@ public class GraphTest : MonoBehaviour
         BFS,
         DFS_Recursive,
         PathFindingBFS,
+        Dikjstra,
+        AStar
     }
 
     private void Start()
     {
         int[,] map = new int[5, 5]
         {
-            {1,-1,1,1,1 },
-            {1,-1,1,1,1 },
-            {1,-1,1,1,1 },
-            {1,-1,1,1,1 },
-            {1,1,1,1,1 },
+            { 1, -1, 1, 3, 1 },
+            { 1, -1, 1, 1, 1 },
+            { 1, -1, 8, 5, 1 },
+            { 1, -1, 3, 1, 1 },
+            { 1, 1, 1, 1, 1 },
         };
 
         graph = new Graph();
@@ -57,6 +59,12 @@ public class GraphTest : MonoBehaviour
                 break;
             case AlgorithmType.PathFindingBFS:
                 search.PathFind(graph.nodes[startIndex], graph.nodes[endIndex]);
+                break;
+            case AlgorithmType.Dikjstra:
+                search.Dikjstra(graph.nodes[startIndex], graph.nodes[endIndex]);
+                break;
+            case AlgorithmType.AStar:
+                search.Astar(graph.nodes[startIndex], graph.nodes[endIndex]);
                 break;
         }
         ResetUINodes();

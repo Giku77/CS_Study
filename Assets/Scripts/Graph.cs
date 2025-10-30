@@ -7,6 +7,14 @@ public class Graph
 
     public GraphNode[] nodes;
 
+    public void ResetNodePrevious()
+    {
+        foreach (var node in nodes)
+        {
+            node.previous = null;
+        }
+    }
+
     public void Init(int[,] grid)
     {
         rows = grid.GetLength(0);
