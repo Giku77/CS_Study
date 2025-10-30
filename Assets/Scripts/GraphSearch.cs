@@ -1,16 +1,43 @@
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class GraphSearch 
 {
     private Graph graph;
     public List<GraphNode> path = new List<GraphNode>();
+    public List<GraphNode> opened = new List<GraphNode>();
+    public List<GraphNode> closed = new List<GraphNode>();
+
+    public int[] lastG;                 
+    public int[] lastF;                
+    public int[] enqueueOrder;         
+    public int[] popOrder;              
+
+    private int _enqueueTick = 0;
+    private int _popTick = 0;
 
 
     public void Init(Graph graph)
     {
         this.graph = graph;
+
+        path.Clear(); opened.Clear(); closed.Clear();
+
+        int n = graph.nodes.Length;
+        lastG = new int[n];
+        lastF = new int[n];                
+        enqueueOrder = new int[n];
+        popOrder = new int[n];
+
+        for (int i = 0; i < n; i++)
+        {
+            lastG[i] = int.MaxValue;
+            lastF[i] = int.MaxValue;
+            enqueueOrder[i] = -1;
+            popOrder[i] = -1;
+        }
+        _enqueueTick = 0;
+        _popTick = 0;
     }
 
     public bool PathFindingBFS(GraphNode start, GraphNode end)
@@ -180,6 +207,8 @@ public class GraphSearch
     public bool Dikjstra(GraphNode start, GraphNode goal)
     {
         path.Clear();
+        opened.Clear();
+        closed.Clear();
         graph.ResetNodePrevious();
 
         var visited = new HashSet<GraphNode>();
@@ -191,7 +220,10 @@ public class GraphSearch
         }
 
         distances[start.id] = start.weight;
+        lastG[start.id] = distances[start.id];
         pQueue.Enqueue(start, distances[start.id]);
+        opened.Add(start);
+        if (enqueueOrder[start.id] < 0) enqueueOrder[start.id] = _enqueueTick++;
 
         bool success = false;
         while (pQueue.Count > 0)
@@ -199,6 +231,9 @@ public class GraphSearch
             var currentNode = pQueue.Dequeue();
             if (visited.Contains(currentNode))
                 continue;
+
+            closed.Add(currentNode);
+            popOrder[currentNode.id] = _popTick++;
 
             if (currentNode == goal)
             {
@@ -213,12 +248,20 @@ public class GraphSearch
                 if (!adjacent.CanVisit || visited.Contains(adjacent))
                     continue;
 
+                //Debug.Log($"d : {distances[currentNode.id]}");
                 var newDistance = distances[currentNode.id] + adjacent.weight;
+                //Debug.Log($"nd : {newDistance}");
                 if (distances[adjacent.id] > newDistance)
                 {
                     distances[adjacent.id] = newDistance;
+                    lastG[adjacent.id] = newDistance;
                     adjacent.previous = currentNode;
                     pQueue.Enqueue(adjacent, newDistance);
+                    Debug.Log($"Enqueue : {adjacent.id} with dist {newDistance}");
+
+                    if (!opened.Contains(adjacent))
+                        opened.Add(adjacent);
+                    if (enqueueOrder[adjacent.id] < 0) enqueueOrder[adjacent.id] = _enqueueTick++;
                 }
             }
         }

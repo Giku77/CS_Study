@@ -29,4 +29,14 @@ public class UIGraphNode : MonoBehaviour
     {
         this.text.text = text;
     }
+
+    public void AppendText(string text)
+    {
+        this.text.text += text;
+    }
+
+    public void SetFontSize(int size)
+    {
+        text.fontSize = size;
+    }
 }
