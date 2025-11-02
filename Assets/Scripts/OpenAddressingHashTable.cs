@@ -28,8 +28,14 @@ public class OpenAddressingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
         table = new KeyValuePair<TKey, TValue>[capacity];
         occupied = new bool[capacity];
         deleted = new bool[capacity];
-        size = DefaultCapacity;
+        size = capacity;
         count = 0;
+    }
+
+    public bool TryGetStoredIndex(TKey key, out int index)
+    {
+        index = FindIndex(key);
+        return index != -1;
     }
 
     public int GetPrimaryHash(TKey key)

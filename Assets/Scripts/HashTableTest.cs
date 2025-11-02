@@ -46,11 +46,27 @@ public class HashTableTest : MonoBehaviour
                     DisplayHashTable(chainingHashTable);
                     //SetInfoText("Chaining Hash Table Initialized");
                     chooseTableType.interactable = false;
+                    //for (int i = 0; i < 100; i++)
+                    //{
+                    //    chainingHashTable.Add($"key{i}", i);
+                    //    keys.Add($"key{i}");
+                    //}
+                    //size = chainingHashTable.Size;
+                    //DisplayHashTable(chainingHashTable);
+                    //UpdateUITable();
                     break;
             }
         });
 
         InitOpenAddressingHashTable();
+        //for (int i = 0; i < 100; i++)
+        //{
+        //    openAddressingHashTable.Add($"key{i}", i);
+        //    keys.Add($"key{i}");
+        //}
+        //size = openAddressingHashTable.Size;
+        //DisplayHashTable(openAddressingHashTable);
+        //UpdateUITable();
         DisplayHashTable(openAddressingHashTable);
         //SetInfoText($"Hash Table Initialized. Size : {size}");
     }
@@ -101,8 +117,10 @@ public class HashTableTest : MonoBehaviour
             case 0:
                 openAddressingHashTable.Add(key, value);
                 size = openAddressingHashTable.Size;
-                var index = openAddressingHashTable.GetProbeIndex(key, 0);
-                SetInfoText($"Key: {key} added at index {index}");
+                if (openAddressingHashTable.TryGetStoredIndex(key, out var index))
+                    SetInfoText($"Key: {key} added at index {index}");
+                //var index = openAddressingHashTable.GetProbeIndex(key, 0);
+                //SetInfoText($"Key: {key} added at index {index}");
                 break;
             case 1:
                 chainingHashTable.Add(key, value);
@@ -134,8 +152,10 @@ public class HashTableTest : MonoBehaviour
                 {
                     keys.Remove(key);
                 }
-                var index = openAddressingHashTable.GetProbeIndex(key, 0);
-                SetInfoText($"Key: {key} removed from index {index}");
+                if (openAddressingHashTable.TryGetStoredIndex(key, out var index))
+                    SetInfoText($"Key: {key} removed from index {index}");
+                //var index = openAddressingHashTable.GetProbeIndex(key, 0);
+                //SetInfoText($"Key: {key} removed from index {index}");
                 openAddressingHashTable.Remove(key);
                 break;
             case 1:
@@ -179,15 +199,19 @@ public class HashTableTest : MonoBehaviour
             case 0:
                 for (int i = 0; i < keys.Count; i++)
                 {
-                   var itemIndex = openAddressingHashTable.GetProbeIndex(keys[i], i);
-                   uiTables[itemIndex].SetText($" I : {itemIndex} K: {keys[i]} V: {openAddressingHashTable[keys[i]]}");
+                    if (openAddressingHashTable.TryGetStoredIndex(keys[i], out var storedIndex))
+                    {
+                        uiTables[storedIndex].AppendText($" K: {keys[i]} V: {openAddressingHashTable[keys[i]]}");
+                    }
                 }
                 break;
             case 1:
                 for (int i = 0; i < keys.Count; i++)
                 {
                     var itemIndex = chainingHashTable.GetHashIndex(keys[i]);
-                    uiTables[itemIndex].SetText($" I : {itemIndex} K: {keys[i]} V: {chainingHashTable[keys[i]]}");
+                    if (uiTables[itemIndex].text.text.Contains("K:"))
+                        uiTables[itemIndex].SetFontSize(18);
+                    uiTables[itemIndex].AppendText($" K: {keys[i]} V: {chainingHashTable[keys[i]]}");
                 }
                 break;
         }
