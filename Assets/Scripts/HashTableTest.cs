@@ -25,6 +25,28 @@ public class HashTableTest : MonoBehaviour
     private OpenAddressingHashTable<string, int> openAddressingHashTable;
     private ChainingHashTable<string, int> chainingHashTable;
 
+    private void AddTestOf100()
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            string key = $"key{i}";
+            int value = i;
+            keys.Add(key);
+            switch (chooseTable.value)
+            {
+                case 0:
+                    openAddressingHashTable.Add(key, value);
+                    break;
+                case 1:
+                    chainingHashTable.Add(key, value);
+                    break;
+            }
+        }
+        size = chooseTable.value == 0 ? openAddressingHashTable.Size : chainingHashTable.Size;
+        DisplayHashTable(chooseTable.value == 0 ? openAddressingHashTable : chainingHashTable);
+        UpdateUITable();
+    }
+
     private void Start()
     {
         chooseTable.onValueChanged.AddListener(v =>
@@ -46,28 +68,14 @@ public class HashTableTest : MonoBehaviour
                     DisplayHashTable(chainingHashTable);
                     //SetInfoText("Chaining Hash Table Initialized");
                     chooseTableType.interactable = false;
-                    //for (int i = 0; i < 100; i++)
-                    //{
-                    //    chainingHashTable.Add($"key{i}", i);
-                    //    keys.Add($"key{i}");
-                    //}
-                    //size = chainingHashTable.Size;
-                    //DisplayHashTable(chainingHashTable);
-                    //UpdateUITable();
+                    //AddTestOf100();
                     break;
             }
         });
 
         InitOpenAddressingHashTable();
-        //for (int i = 0; i < 100; i++)
-        //{
-        //    openAddressingHashTable.Add($"key{i}", i);
-        //    keys.Add($"key{i}");
-        //}
-        //size = openAddressingHashTable.Size;
-        //DisplayHashTable(openAddressingHashTable);
-        //UpdateUITable();
         DisplayHashTable(openAddressingHashTable);
+        //AddTestOf100();
         //SetInfoText($"Hash Table Initialized. Size : {size}");
     }
 
